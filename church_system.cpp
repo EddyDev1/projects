@@ -10,6 +10,7 @@
 using std::cout;
 using std::cin;
 
+// make more secure? all of it is public..
 struct Person
 {
   int age, years_a_member;
@@ -328,8 +329,6 @@ void searchAndEdit(std::unordered_map<std::string, Person>& roster)
   }
 
   cout << '\n';
-  //cin.clear();
-  //cin.ignore();
 }
 
 void view(std::unordered_map<std::string, Person>& roster)
@@ -349,7 +348,7 @@ int main()
 
   do
   {
-    cout << "GGA Roster System\n";
+    cout << "Church Roster System\n";
     cout << "1. Add a person to the roster\n2. Remove a person from the roster\n3. Search and Edit a person in the roster\n4. View entire roster\n5. Quit\nPick a option to get started (a number):\n";
 
     cin.clear();
