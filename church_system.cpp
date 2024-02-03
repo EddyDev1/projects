@@ -179,7 +179,7 @@ std::string add_string(std::string prompt, int pick = 0)
   std:: string t;
   bool verify = false;
 
-  if (pick == 1) // string
+  if (pick == 1) // string data
   {
     do
     {
@@ -207,9 +207,9 @@ std::string add_string(std::string prompt, int pick = 0)
 
     } while (verify);
   }
-  else // number
+  else // number data
   {
-  do
+    do
     {
       cout << prompt;
       getline(cin >> std::ws, t);
@@ -316,11 +316,8 @@ void searchAndEdit(std::unordered_map<std::string, Person>& roster)
       case '1':
       case '2':
       case '3':
-        break;
       default:
-      {
-
-      }
+        break;
     }
   }
   else
@@ -333,7 +330,7 @@ void searchAndEdit(std::unordered_map<std::string, Person>& roster)
 
 void view(std::unordered_map<std::string, Person>& roster)
 {
-  cout << "\nIn the future ask for display method like 'last name alphabetical'\n";
+  // In the future ask for display method like 'last name alphabetical'
   for (auto const& [name, person] : roster)
     cout << name << ' ' << person.age << '\n';
   cout << '\n';
@@ -366,25 +363,17 @@ int main()
     switch (choice[0])
     {
       case '1':
-      {
         add(roster);
         break;
-      }
       case '2':
-      {
         remove(roster);
         break;
-      }
       case '3':
-      {
         searchAndEdit(roster);
         break;
-      }
       case '4':
-      {
         view(roster);
         break;
-      }
       case '5':
         break;
       default:
@@ -394,7 +383,7 @@ int main()
           cout << "Enter a number between 1 and 5 and nothing else.\n";
           getline(cin >> std::ws, choice);
         } while (choice.length() != 1);
-        
+        break;
       }
     }
   } while (1 && choice[0] != '5');
