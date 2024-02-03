@@ -86,6 +86,68 @@ int Queue::size(){
   return counter;
 }
 
+// trying linked list approach
+// look at this https://www.geeksforgeeks.org/queue-linked-list-implementation/#
+
+template <typename T>
+struct QNode
+{
+  T val;
+  T* next;
+};
+
+template <typename T>
+class testQueue
+{
+  public:
+    int length;
+
+    testQueue<T>() : length(0), head(nullptr), tail(nullptr);
+    void enqueue(QNode<T> node);
+    T peek();
+    T dequeue();
+
+
+  private:
+    QNode<T> head, tail;
+};
+
+template <typename T>
+void testQueue<T>::enqueue(QNode<T> node)
+{
+  if (!this->length)
+  {
+    this->tail = this->head = node;
+    this->length++;
+    return;
+  }
+
+  this->length++;
+  this->tail.next = node;
+  this->tail = node;
+}
+
+template <typename T>
+T testQueue<T>::peek()
+{
+  if (!this->head)
+    return nullptr;
+  
+  return this->head.val;
+}
+
+template <typename T>
+T testQueue<T>::dequeue()
+{
+  if(!this->length)
+    return nullptr;
+  
+  T temp = this->head;
+  this->head = this->head->next;
+  temp->next = nullptr;
+  
+  return temp.val;
+}
 
 int main(int argc, char** argv){
   std::ios::sync_with_stdio(false);
