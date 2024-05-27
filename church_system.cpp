@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <ostream>
 #include <sstream>
 #include <string>
@@ -15,11 +16,22 @@ struct Person
 {
   int age, years_a_member;
   int num_children;
+  double tithes;
+
   std::string name, status;
   std::string martial_status;
   std::string affiliation;
+
   std::vector<std::pair<std::string, int> > children;
-  double tithes;
+};
+
+struct last_name_sort
+{
+  bool operator()(const std::string& lhs, const std::string& rhs) const
+  { 
+    std::string lhs_end = lhs.substr(lhs.find(' ') + 1), rhs_end = rhs.substr(rhs.find(' ') + 1);
+    return (lhs_end == rhs_end) ? lhs < rhs : lhs_end < rhs_end; 
+  }
 };
 
 //data formation:
@@ -282,13 +294,17 @@ void add(std::unordered_map<std::string, Person>& roster)
   roster[temp.name] = temp;
 }
 
-void remove(std::unordered_map<std::string, Person>& roster)
+void remove(std::unordered_map<std::string, Person>& roster, char option = 's', std::string nname = "")
 {
-  cout << "Enter name: ";
-  std::string name;
-  getline(cin >> std::ws, name);
+  if (option == 'e' && roster.count(nname))
+  {
+    roster.erase(nname);
+    return;
+  }
 
-  if (roster.count(name))
+  std::string name = add_string("Enter name: ", 1);
+
+  if (option == 's' && roster.count(name))
     roster.erase(name);
   else
     cout << "ERROR: " << name << " not found. Cannot remove.\n";
@@ -312,9 +328,7 @@ void display(Person person)
 
 void searchAndEdit(std::unordered_map<std::string, Person>& roster)
 {
-  std::string str;
-  cout << "Enter name: ";
-  getline(cin >> std::ws, str);
+  std::string str = add_string("Enter name: ", 1), str2;
 
   if (roster.count(str))
   {
@@ -322,13 +336,21 @@ void searchAndEdit(std::unordered_map<std::string, Person>& roster)
     cout << "What do you want to edit?\n";
     cout << "1. Name\n2. Age\n3. None\n";
 
-    cin >> str;
+    cin >> str2;
 
-    switch (str[0])
+    switch (str2[0])
     {
       case '1':
+      {
+        std::string new_name = add_string("New name: ", 1);
+        roster[new_name] = roster[str];
+        roster[new_name].name = new_name;
+        remove(roster, 'e', str);
+        break;
+      }
       case '2':
-      case '3':
+        roster[str].age = std::stoi(add_string("New age: "));
+        break;
       default:
         break;
     }
@@ -344,8 +366,38 @@ void searchAndEdit(std::unordered_map<std::string, Person>& roster)
 void view(std::unordered_map<std::string, Person>& roster)
 {
   // In the future ask for display method like 'last name alphabetical'
-  for (auto const& [name, person] : roster)
-    cout << name << ' ' << person.age << '\n';
+  std::string str;
+  cout << "Sort by:\n1. No Sorting\n2. First Name\n3. Last Name\n";
+  getline(cin >> std::ws, str);
+
+  switch(str[0])
+  {
+    case '1':
+    {
+      for (auto const& [name, person] : roster)
+        cout << name << ' ' << person.age << '\n';
+      break;
+    }
+    case '2':
+    {
+      std::map<std::string, Person> temp2(roster.begin(), roster.end());
+
+      for (auto const& [name, person] : temp2)
+        cout << name <<' ' << person.age << '\n';
+      break;
+    }
+    case '3':
+    {
+      std::map<std::string, Person, last_name_sort> temp(roster.begin(), roster.end(), last_name_sort());
+
+      for (auto const& [name, person] : temp)
+        cout << name <<' ' << person.age << '\n';
+      break;
+    }
+    default:
+    break;
+  }
+
   cout << '\n';
 }
 
@@ -371,7 +423,7 @@ int main(int argc, char* argv[])
   do
   {
     cout << "Church Roster System\n";
-    cout << "1. Add a person to the roster\n2. Remove a person from the roster\n3. Search and Edit a person in the roster\n4. View entire roster\n5. Quit\nPick a option to get started (a number):\n";
+    cout << "1. Add a person to the roster\n2. Remove a person from the roster\n3. Search and Edit a person in the roster\n4. View entire roster\n5. Quit\nPick an option to get started:\n";
 
     cin.clear();
     getline(cin >> std::ws, choice);
