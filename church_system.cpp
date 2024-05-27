@@ -25,7 +25,7 @@ struct Person
 //data formation:
 const std::string format = "name,age,years_a_member,num_children,status,martial_status,affiliation,children,tithes";
 
-void init(std::string filename, std::unordered_map<std::string, Person>& roster)
+int init(std::string filename, std::unordered_map<std::string, Person>& roster)
 {
   cout << "Retrieving data...\n" << '\n';
 
@@ -34,7 +34,8 @@ void init(std::string filename, std::unordered_map<std::string, Person>& roster)
   if (!infile.is_open())
   {
     cout << "Error: " << filename << " could not open. Quit and try again.\n";
-    return;
+    cout << "Please run this program with a valid .csv file.\n";
+    return -1;
   }
 
   std::string temp;
@@ -131,45 +132,57 @@ void init(std::string filename, std::unordered_map<std::string, Person>& roster)
 
     roster[person.name] = person;
   }
-
+  
+  infile.close();
+  return 1;
 }
 
 void save(std::string filename, std::unordered_map<std::string, Person>& roster)
 {
   cout << "Saving roster...\n";
 
-  std::ofstream outfile(filename);
-
-  if (!outfile.is_open())
+  if (filename != "error.csv")
   {
-    cout << "Error: " << filename << " could not open.\n";
+    std::ofstream outfile(filename);
+
+    if (!outfile.is_open())
+    {
+      cout << "Error: " << filename << " could not open.\n";
+      return;
+    }
+
+    outfile << format << '\n';
+
+    for (auto const& [name, person] : roster)
+    {
+      outfile << name << ',' << person.age << ',';
+      outfile << person.years_a_member << ',' << person.num_children << ',';
+      outfile << person.status << ',' << person.martial_status << ',';
+      outfile << person.affiliation << ',';
+
+      if (person.num_children >= 1)
+      {
+        for (int i = 0; i < person.num_children; i++)
+          if (i + 1 != person.num_children)
+            outfile << person.children[i].first << '_' << person.children[i].second << '|';
+          else
+            outfile << person.children[i].first << '_' << person.children[i].second;
+      }
+      else
+        outfile << "none_0";
+
+      outfile << ',' << person.tithes << '\n';
+    }
+
+    outfile.close();
+  }
+  else
+  {
+    cout << "Program initlized with an error. No changes made or saved.\n";
+    cout << "Closing...\n";
     return;
   }
 
-  outfile << format << '\n';
-
-  for (auto const& [name, person] : roster)
-  {
-    outfile << name << ',' << person.age << ',';
-    outfile << person.years_a_member << ',' << person.num_children << ',';
-    outfile << person.status << ',' << person.martial_status << ',';
-    outfile << person.affiliation << ',';
-
-    if (person.num_children >= 1)
-    {
-      for (int i = 0; i < person.num_children; i++)
-        if (i + 1 != person.num_children)
-          outfile << person.children[i].first << '_' << person.children[i].second << '|';
-        else
-          outfile << person.children[i].first << '_' << person.children[i].second;
-    }
-    else
-      outfile << "none_0";
-
-    outfile << ',' << person.tithes << '\n';
-  }
-
-  outfile.close();
 
   cout << "Saved roster. Closing..." << '\n';
 }
@@ -336,12 +349,24 @@ void view(std::unordered_map<std::string, Person>& roster)
   cout << '\n';
 }
 
-int main()
+/**
+ * @brief Main function for the Church Roster System.
+ *
+ * This function is the entry point for the Church Roster System.
+ * It initializes the church roster from a CSV file, prompts the user to choose an action, and then performs the chosen action on the roster.
+ * Finally, the function saves the updated roster to a CSV file.
+ *
+ * @param argc The number of command-line arguments.
+ * @param argv The command-line arguments themselves. 
+ * @return An integer exit code.
+ */
+int main(int argc, char* argv[])
 {
   std::unordered_map<std::string, Person> roster;
   std::string choice;
 
-  init("roster.csv", roster);
+  int status = init(argc > 1 ? argv[1] : "error.csv", roster);
+  if (status == -1) return -1;
 
   do
   {
@@ -355,7 +380,7 @@ int main()
     {
       do
       {
-        cout << "Enter a number between 1 and 5 and nothing else.\n";
+        cout << "Enter a number between 1 and 5.\n";
         getline(cin, choice);
       } while (choice.length() != 1);
     }
@@ -376,19 +401,10 @@ int main()
         break;
       case '5':
         break;
-      default:
-      {
-        do
-        {
-          cout << "Enter a number between 1 and 5 and nothing else.\n";
-          getline(cin >> std::ws, choice);
-        } while (choice.length() != 1);
-        break;
-      }
     }
   } while (1 && choice[0] != '5');
 
-  save("roster.csv", roster);
+  save(argc > 1 ? argv[1] : "error.csv", roster);
 
   return 0;
 }
