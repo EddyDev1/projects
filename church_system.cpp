@@ -153,56 +153,47 @@ void save(std::string filename, std::unordered_map<std::string, Person>& roster)
 {
   cout << "Saving roster...\n";
 
-  if (filename != "error.csv")
+  std::ofstream outfile(filename);
+
+  if (!outfile.is_open())
   {
-    std::ofstream outfile(filename);
-
-    if (!outfile.is_open())
-    {
-      cout << "Error: " << filename << " could not open.\n";
-      return;
-    }
-
-    outfile << format << '\n';
-
-    for (auto const& [name, person] : roster)
-    {
-      outfile << name << ',' << person.age << ',';
-      outfile << person.years_a_member << ',' << person.num_children << ',';
-      outfile << person.status << ',' << person.martial_status << ',';
-      outfile << person.affiliation << ',';
-
-      if (person.num_children >= 1)
-      {
-        for (int i = 0; i < person.num_children; i++)
-          if (i + 1 != person.num_children)
-            outfile << person.children[i].first << '_' << person.children[i].second << '|';
-          else
-            outfile << person.children[i].first << '_' << person.children[i].second;
-      }
-      else
-        outfile << "none_0";
-
-      outfile << ',' << person.tithes << '\n';
-    }
-
-    outfile.close();
-  }
-  else
-  {
-    cout << "Program initlized with an error. No changes made or saved.\n";
-    cout << "Closing...\n";
+    cout << "Error: " << filename << " could not open.\n";
     return;
   }
 
+  outfile << format << '\n';
+
+  for (auto const& [name, person] : roster)
+  {
+    outfile << name << ',' << person.age << ',';
+    outfile << person.years_a_member << ',' << person.num_children << ',';
+    outfile << person.status << ',' << person.martial_status << ',';
+    outfile << person.affiliation << ',';
+
+    if (person.num_children >= 1)
+    {
+      for (int i = 0; i < person.num_children; i++)
+        if (i + 1 != person.num_children)
+          outfile << person.children[i].first << '_' << person.children[i].second << '|';
+        else
+          outfile << person.children[i].first << '_' << person.children[i].second;
+    }
+    else
+      outfile << "none_0";
+
+    outfile << ',' << person.tithes << '\n';
+  }
+
+  outfile.close();
 
   cout << "Saved roster. Closing..." << '\n';
 }
 
-std::string add_string(std::string prompt, int pick = 0)
+std::string get_input(std::string prompt, int pick = 0)
 {
   std:: string t;
   bool verify = false;
+  int n, i = 0;
 
   if (pick == 1) // string data
   {
@@ -210,8 +201,9 @@ std::string add_string(std::string prompt, int pick = 0)
     {
       cout << prompt;
       getline(cin >> std::ws, t);
-
-      int n = t.length(), i = 0;
+      
+      verify = false;
+      n = t.length();
 
       while (i < n)
       {
@@ -238,7 +230,9 @@ std::string add_string(std::string prompt, int pick = 0)
     {
       cout << prompt;
       getline(cin >> std::ws, t);
-      int n = t.length(), i = 0;
+      
+      verify = false;
+      n = t.length();
 
       while (i < n)
       {
@@ -269,27 +263,27 @@ void add(std::unordered_map<std::string, Person>& roster)
   // use regex to verify instead?
   Person temp;
 
-  temp.name = add_string("Name: ", 1);
-  temp.status = add_string("Status: ", 1);
-  temp.martial_status = add_string("Marital status: ", 1);
-  temp.affiliation = add_string("Affiliation: ", 1);
+  temp.name = get_input("Name: ", 1);
+  temp.status = get_input("Status: ", 1);
+  temp.martial_status = get_input("Marital status: ", 1);
+  temp.affiliation = get_input("Affiliation: ", 1);
 
-  temp.age = std::stoi(add_string("Age: "));
-  temp.years_a_member = std::stoi(add_string("Years a member: "));
-  temp.num_children = std::stoi(add_string("Number of children: "));
+  temp.age = std::stoi(get_input("Age: "));
+  temp.years_a_member = std::stoi(get_input("Years a member: "));
+  temp.num_children = std::stoi(get_input("Number of children: "));
 
   if (temp.num_children >= 1)
   {
     std::pair<std::string, int> child;
     for (int i = 0; i < temp.num_children; i++)
     {
-      child.first = add_string("Child name: ", 1);
-      child.second = std::stoi(add_string("Child age: "));
+      child.first = get_input("Child name: ", 1);
+      child.second = std::stoi(get_input("Child age: "));
       temp.children.push_back(child);
     }
   }
 
-  temp.tithes = std::stod(add_string("Tithes $: "));
+  temp.tithes = std::stod(get_input("Tithes $: "));
   cout << "Successfully added!\n\n";
   roster[temp.name] = temp;
 }
@@ -302,7 +296,7 @@ void remove(std::unordered_map<std::string, Person>& roster, char option = 's', 
     return;
   }
 
-  std::string name = add_string("Enter name: ", 1);
+  std::string name = get_input("Enter name: ", 1);
 
   if (option == 's' && roster.count(name))
     roster.erase(name);
@@ -310,7 +304,7 @@ void remove(std::unordered_map<std::string, Person>& roster, char option = 's', 
     cout << "ERROR: " << name << " not found. Cannot remove.\n";
 }
 
-void display(Person person)
+void display(Person& person)
 {
   cout << '\n' << person.name << ' ' << person.age << " years old\n";
   cout << "Currently a " << person.status << " of the church and is " << person.martial_status << " tithes: $" << person.tithes << '\n';
@@ -318,38 +312,33 @@ void display(Person person)
   cout << "Number of children: " << person.num_children << '\n';
 
   if (person.num_children != 0)
-  {
     for(auto& child : person.children)
       cout << child.first << " is " << child.second << " years old\n";
-  }
 
   cout << '\n';
 }
 
 void searchAndEdit(std::unordered_map<std::string, Person>& roster)
 {
-  std::string str = add_string("Enter name: ", 1), str2;
+  std::string str = get_input("Enter name: ", 1), str2;
 
   if (roster.count(str))
   {
     display(roster[str]);
-    cout << "What do you want to edit?\n";
-    cout << "1. Name\n2. Age\n3. None\n";
-
-    cin >> str2;
+    str2 = get_input("What do you want to edit?\n1. Name\n2. Age\n3. None\n");
 
     switch (str2[0])
     {
       case '1':
       {
-        std::string new_name = add_string("New name: ", 1);
+        std::string new_name = get_input("New name: ", 1);
         roster[new_name] = roster[str];
         roster[new_name].name = new_name;
         remove(roster, 'e', str);
         break;
       }
       case '2':
-        roster[str].age = std::stoi(add_string("New age: "));
+        roster[str].age = std::stoi(get_input("New age: "));
         break;
       default:
         break;
@@ -366,9 +355,7 @@ void searchAndEdit(std::unordered_map<std::string, Person>& roster)
 void view(std::unordered_map<std::string, Person>& roster)
 {
   // In the future ask for display method like 'last name alphabetical'
-  std::string str;
-  cout << "Sort by:\n1. No Sorting\n2. First Name\n3. Last Name\n";
-  getline(cin >> std::ws, str);
+  std::string str = get_input("Sort by:\n1. No Sorting\n2. First Name\n3. Last Name\n");
 
   switch(str[0])
   {
@@ -423,19 +410,9 @@ int main(int argc, char* argv[])
   do
   {
     cout << "Church Roster System\n";
-    cout << "1. Add a person to the roster\n2. Remove a person from the roster\n3. Search and Edit a person in the roster\n4. View entire roster\n5. Quit\nPick an option to get started:\n";
 
     cin.clear();
-    getline(cin >> std::ws, choice);
-
-    if (choice.length() > 1)
-    {
-      do
-      {
-        cout << "Enter a number between 1 and 5.\n";
-        getline(cin, choice);
-      } while (choice.length() != 1);
-    }
+    choice = get_input("1. Add a person to the roster\n2. Remove a person from the roster\n3. Search and Edit a person in the roster\n4. View entire roster\n5. Quit\nPick an option to get started:\n");
 
     switch (choice[0])
     {
@@ -456,7 +433,7 @@ int main(int argc, char* argv[])
     }
   } while (1 && choice[0] != '5');
 
-  save(argc > 1 ? argv[1] : "error.csv", roster);
+  save(argv[1], roster);
 
   return 0;
 }
